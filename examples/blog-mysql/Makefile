@@ -1,23 +1,24 @@
 APIDOC_BASE = cmd/api
 APIDOC_INFO = internal/http/handler
-MYSQL_URI   = mysql://$(MYSQL_USERNAME):$(MYSQL_PASSWORD)@tcp($(MYSQL_HOST):$(MYSQL_PORT))/$(MYSQL_DATABASE_NAME)
 
 include .env
+
+MYSQL_DSN = mysql://$(MYSQL_USERNAME):$(MYSQL_PASSWORD)@tcp($(MYSQL_HOST):$(MYSQL_PORT))/$(MYSQL_DATABASE_NAME)
 
 migrate:
 	migrate create -ext sql -dir database/migration/ -seq $(create)
 
 migrate_up:
-	migrate -path database/migration -database '$(MYSQL_URI)' -verbose up
+	migrate -path database/migration -database '$(MYSQL_DSN)' -verbose up
 
 migrate_down:
-	migrate -path database/migration -database '$(MYSQL_URI)' -verbose down
+	migrate -path database/migration -database '$(MYSQL_DSN)' -verbose down
 
 migrate_rollback:
-	migrate -path database/migration -database '$(MYSQL_URI)' -verbose down $(shell echo ${step}-1 | bc)
+	migrate -path database/migration -database '$(MYSQL_DSN)' -verbose down $(shell echo ${step}-1 | bc)
 
 migrate_fix: 
-	migrate -path database/migration -database '$(MYSQL_URI)' force $(version)
+	migrate -path database/migration -database '$(MYSQL_DSN)' force $(version)
 
 test:
 	go test -cover -coverprofile=coverage.out $$(go list ./...)

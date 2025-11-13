@@ -10,6 +10,11 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     vim \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
+# Install golang-migrate
+RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz \
+    && mv migrate /usr/local/bin/migrate \
+    && chmod +x /usr/local/bin/migrate
+
 # Set up Go environment
 ENV GOPATH=/go
 ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH

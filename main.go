@@ -28,7 +28,6 @@ type ProjectConfig struct {
 	Database       string
 	UseRedis       bool
 	UseRabbitMQ    bool
-	UseMongoLogger bool
 }
 
 func main() {
@@ -66,7 +65,10 @@ func collectConfiguration() *ProjectConfig {
 
 	// Project name
 	config.ProjectName = promptString(reader, "What is your project name?", "my-go-api")
-	config.ProjectPath = "./" + config.ProjectName
+	
+	// Project path
+	defaultPath := "./" + config.ProjectName
+	config.ProjectPath = promptString(reader, "Where to create the project?", defaultPath)
 
 	// Module path
 	defaultModule := fmt.Sprintf("github.com/yourusername/%s", config.ProjectName)
@@ -92,10 +94,6 @@ func collectConfiguration() *ProjectConfig {
 	// Optional services
 	config.UseRedis = promptBool(reader, "Would you like to use Redis for caching?")
 	config.UseRabbitMQ = promptBool(reader, "Would you like to use RabbitMQ for message queuing?")
-	
-	if config.Database != "mongodb" {
-		config.UseMongoLogger = promptBool(reader, "Would you like to use MongoDB for logging?")
-	}
 
 	return config
 }
@@ -166,7 +164,6 @@ func printSummary(config *ProjectConfig) {
 	fmt.Println(ColorGreen + "  ✓ Database: " + ColorReset + config.Database)
 	fmt.Println(ColorGreen + "  ✓ Redis: " + ColorReset + boolToYesNo(config.UseRedis))
 	fmt.Println(ColorGreen + "  ✓ RabbitMQ: " + ColorReset + boolToYesNo(config.UseRabbitMQ))
-	fmt.Println(ColorGreen + "  ✓ MongoDB Logger: " + ColorReset + boolToYesNo(config.UseMongoLogger))
 	fmt.Println()
 }
 
@@ -186,40 +183,51 @@ func createProject(config *ProjectConfig) error {
 	}
 	
 	// Copy template files
-	fmt.Println("  [1/5] Copying template files...")
+	fmt.Println("  [1/6] Copying template files...")
 	if err := copyTemplate(config); err != nil {
 		return fmt.Errorf("failed to copy template: %w", err)
 	}
 	
+	// Create go.mod file
+	fmt.Println("  [2/6] Creating go.mod file...")
+	if err := createGoMod(config); err != nil {
+		return fmt.Errorf("failed to create go.mod: %w", err)
+	}
+	
 	// Update module paths
-	fmt.Println("  [2/5] Updating module paths...")
+	fmt.Println("  [3/6] Updating module paths...")
 	if err := updateModulePaths(config); err != nil {
 		return fmt.Errorf("failed to update module paths: %w", err)
 	}
 	
 	// Clean up unnecessary files
-	fmt.Println("  [3/5] Removing unnecessary files...")
+	fmt.Println("  [4/6] Removing unnecessary files...")
 	if err := cleanupFiles(config); err != nil {
 		return fmt.Errorf("failed to cleanup: %w", err)
 	}
 	
 	// Generate devcontainer
-	fmt.Println("  [4/5] Generating devcontainer configuration...")
+	fmt.Println("  [5/6] Generating devcontainer configuration...")
 	if err := generateDevcontainer(config); err != nil {
 		return fmt.Errorf("failed to generate devcontainer: %w", err)
 	}
 	
 	// Update config files
-	fmt.Println("  [5/5] Updating configuration files...")
+	fmt.Println("  [6/6] Updating configuration files...")
 	if err := updateConfigFiles(config); err != nil {
 		return fmt.Errorf("failed to update config: %w", err)
+	}
+	
+	// Update environment files
+	if err := updateEnvFiles(config); err != nil {
+		return fmt.Errorf("failed to update env files: %w", err)
 	}
 	
 	return nil
 }
 
 func copyTemplate(config *ProjectConfig) error {
-	return filepath.Walk("template", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk("template", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -244,6 +252,19 @@ func copyTemplate(config *ProjectConfig) error {
 		// Copy file
 		return copyFile(path, destPath)
 	})
+	
+	if err != nil {
+		return err
+	}
+	
+	// Copy .gitignore separately as it's not included in filepath.Walk by default
+	gitignoreSrc := "template/.gitignore"
+	gitignoreDst := filepath.Join(config.ProjectPath, ".gitignore")
+	if _, err := os.Stat(gitignoreSrc); err == nil {
+		return copyFile(gitignoreSrc, gitignoreDst)
+	}
+	
+	return nil
 }
 
 func copyFile(src, dst string) error {
@@ -261,6 +282,43 @@ func copyFile(src, dst string) error {
 	
 	_, err = io.Copy(destFile, sourceFile)
 	return err
+}
+
+func createGoMod(config *ProjectConfig) error {
+	goModContent := `module ` + config.ModulePath + `
+
+go 1.24.1
+
+require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
+	github.com/bxcodec/faker v2.0.1+incompatible
+	github.com/go-co-op/gocron/v2 v2.11.0
+	github.com/go-playground/locales v0.14.1
+	github.com/go-playground/universal-translator v0.18.1
+	github.com/go-playground/validator/v10 v10.14.1
+	github.com/gofiber/fiber/v2 v2.52.5
+	github.com/gofiber/swagger v1.1.0
+	github.com/golang-jwt/jwt/v4 v4.5.2
+	github.com/google/uuid v1.6.0
+	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
+	github.com/pkg/errors v0.9.1
+	github.com/rabbitmq/amqp091-go v1.8.1
+	github.com/redis/go-redis/v9 v9.3.0
+	github.com/stretchr/testify v1.9.0
+	github.com/subosito/gotenv v1.4.2
+	github.com/swaggo/swag v1.16.3
+	github.com/valyala/fasthttp v1.51.0
+	go.mongodb.org/mongo-driver v1.11.7
+	go.uber.org/zap v1.27.0
+	golang.org/x/crypto v0.36.0
+	gorm.io/driver/mysql v1.5.1
+	gorm.io/driver/postgres v1.5.9
+	gorm.io/gorm v1.25.10
+)
+`
+
+	goModPath := filepath.Join(config.ProjectPath, "go.mod")
+	return os.WriteFile(goModPath, []byte(goModContent), 0644)
 }
 
 func updateModulePaths(config *ProjectConfig) error {
@@ -312,10 +370,6 @@ func cleanupFiles(config *ProjectConfig) error {
 		os.Remove(filepath.Join(config.ProjectPath, "config/rabbitmq.go"))
 	}
 	
-	if !config.UseMongoLogger && config.Database != "mongodb" {
-		os.Remove(filepath.Join(config.ProjectPath, "config/mongodb.go"))
-	}
-	
 	return nil
 }
 
@@ -330,9 +384,22 @@ func generateDevcontainer(config *ProjectConfig) error {
 }
 
 func generateDevcontainerDockerCompose(config *ProjectConfig) string {
-	services := `version: '3.8'
-
-services:
+	// Build depends_on list dynamically
+	dependsOn := []string{"db"}
+	if config.UseRedis {
+		dependsOn = append(dependsOn, "redis")
+	}
+	if config.UseRabbitMQ {
+		dependsOn = append(dependsOn, "rabbitmq")
+	}
+	
+	// Build depends_on YAML
+	dependsOnYaml := ""
+	for _, dep := range dependsOn {
+		dependsOnYaml += "      - " + dep + "\n"
+	}
+	
+	services := `services:
   app:
     build:
       context: .
@@ -342,16 +409,13 @@ services:
     command: sleep infinity
     network_mode: service:db
     depends_on:
-      - db
+` + dependsOnYaml + `
 `
 
 	// Add database service
 	switch config.Database {
 	case "mysql":
-		services += `      - redis
-      - rabbitmq
-` + boolToService(config.UseMongoLogger, "      - mongodb\n") + `
-
+		services += `
   db:
     image: mysql:8.0
     restart: unless-stopped
@@ -366,10 +430,7 @@ services:
       - "3306:3306"
 `
 	case "postgresql":
-		services += `      - redis
-      - rabbitmq
-` + boolToService(config.UseMongoLogger, "      - mongodb\n") + `
-
+		services += `
   db:
     image: postgres:15-alpine
     restart: unless-stopped
@@ -383,9 +444,7 @@ services:
       - "5432:5432"
 `
 	case "mongodb":
-		services += `      - redis
-      - rabbitmq
-
+		services += `
   db:
     image: mongo:6
     restart: unless-stopped
@@ -429,21 +488,6 @@ services:
 `
 	}
 
-	// Add MongoDB for logging if needed
-	if config.UseMongoLogger && config.Database != "mongodb" {
-		services += `
-  mongodb:
-    image: mongo:6
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_DATABASE: ` + sanitizeName(config.ProjectName) + `_logs
-    volumes:
-      - mongodb-data:/data/db
-    ports:
-      - "27017:27017"
-`
-	}
-
 	// Add volumes section
 	services += `
 volumes:
@@ -470,11 +514,6 @@ volumes:
 `
 	}
 
-	if config.UseMongoLogger && config.Database != "mongodb" {
-		services += `  mongodb-data:
-`
-	}
-
 	return services
 }
 
@@ -497,7 +536,7 @@ func updateConfigFiles(config *ProjectConfig) error {
 	if config.Database != "postgresql" {
 		configStr = removeLines(configStr, "PostgreSqlOption")
 	}
-	if config.Database != "mongodb" && !config.UseMongoLogger {
+	if config.Database != "mongodb" {
 		configStr = removeLines(configStr, "MongodbOption")
 	}
 	
@@ -510,6 +549,21 @@ func updateConfigFiles(config *ProjectConfig) error {
 	}
 	
 	return os.WriteFile(configPath, []byte(configStr), 0644)
+}
+
+func updateEnvFiles(config *ProjectConfig) error {
+	// Update .env.devcontainer with actual project database name
+	envDevcontainerPath := filepath.Join(config.ProjectPath, ".devcontainer/.env.devcontainer")
+	
+	content, err := os.ReadFile(envDevcontainerPath)
+	if err != nil {
+		return err
+	}
+	
+	dbName := sanitizeName(config.ProjectName)
+	envContent := strings.ReplaceAll(string(content), "PROJECT_DB_NAME", dbName)
+	
+	return os.WriteFile(envDevcontainerPath, []byte(envContent), 0644)
 }
 
 func removeLines(content, pattern string) string {

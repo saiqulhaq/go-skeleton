@@ -1,42 +1,226 @@
 
-# Propper Skeleton for your Golang Project
+# Go Skeleton - Project Generator
 
-## Description
-`go-skeleton` is a boilerplate for Golang projects. The project structure follows the Clean Code Architecture ([Read here](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)). This Skeleton made with **Fiber Framework**.  
+A modern Go REST API project generator with Clean Architecture, similar to `create-next-app` for Next.js.
 
-"Forget about the complexities of folder structures in Go, focus on your project!"
+## 🚀 Quick Start
 
-Principles :
+```bash
+# Create a new project
+go run github.com/saiqulhaq/go-skeleton/create-go-skeleton@latest
+
+# Or clone and run locally
+git clone https://github.com/saiqulhaq/go-skeleton.git
+cd go-skeleton
+go run .
+```
+
+That's it! Answer a few questions and your project is ready in seconds.
+
+## ✨ Features
+
+- 🎯 **Interactive Generator** - Choose only what you need
+- 🗄️ **Multiple Databases** - MySQL, PostgreSQL, or MongoDB
+- 🐳 **DevContainer Ready** - VS Code DevContainer with your selected services
+- ⚡ **Fast Setup** - Ready-to-code project in ~30 seconds
+- 🧹 **Clean Output** - No unused files or configurations
+- 🏗️ **Clean Architecture** - Best practices built-in
+- 🔐 **JWT Authentication** - RS512 algorithm
+- 📚 **API Documentation** - Swagger/OpenAPI
+- 🧪 **Testing Ready** - Unit tests with mocks
+- 🔄 **Background Jobs** - Optional RabbitMQ support
+- 💾 **Caching** - Optional Redis support
+
+## 📋 What You Get
+
+A complete Go project with:
+- REST API with Fiber framework
+- Clean Architecture structure (Entity → Repository → Usecase → Handler)
+- Your chosen database (MySQL, PostgreSQL, or MongoDB)
+- Optional Redis for caching
+- Optional RabbitMQ for message queuing
+- Optional MongoDB for centralized logging
+- DevContainer configuration with only your selected services
+- Database migrations (for SQL databases)
+- JWT authentication
+- Swagger API documentation
+- Unit testing setup with mocks
+- Example CRUD operations (Users, TodoList)
+
+## 🎬 Example Session
+
+```
+╔══════════════════════════════════════════════════════════╗
+║          🚀 Create Go Skeleton Project 🚀              ║
+╚══════════════════════════════════════════════════════════╝
+
+✔ What is your project name? (my-go-api): ecommerce-api
+✔ What is your Go module path? github.com/mycompany/ecommerce-api
+
+Which database would you like to use?
+  1) MySQL/MariaDB (recommended)
+  2) PostgreSQL
+  3) MongoDB
+✔ Select database (1): 1
+
+✔ Would you like to use Redis for caching? (y/N): y
+✔ Would you like to use RabbitMQ for message queuing? (y/N): n
+✔ Would you like to use MongoDB for logging? (y/N): n
+
+📋 Project Configuration:
+  ✓ Project Name: ecommerce-api
+  ✓ Database: mysql
+  ✓ Redis: Yes
+  ✓ RabbitMQ: No
+
+⚠ Create project? (Y/n): y
+
+🔧 Creating project...
+  [1/5] Copying template files...
+  [2/5] Updating module paths...
+  [3/5] Removing unnecessary files...
+  [4/5] Generating devcontainer configuration...
+  [5/5] Updating configuration files...
+
+✅ Project created successfully!
+```
+
+## 📖 Documentation
+
+- **[Generator README](create-go-skeleton/README.md)** - Complete generator documentation
+- **[Template Structure](template/)** - The base project template
+- **[Cursor Rules](.cursor/general.mdc)** - Code patterns and conventions
+
+## 🏗️ Architecture
+
+The generated project follows Clean Architecture principles:
+
+```
+┌─────────────────────────────────────┐
+│          HTTP Request               │
+└──────────────┬──────────────────────┘
+               │
+        ┌──────▼────────┐
+        │    Handler    │  ← HTTP layer, routing, validation
+        └──────┬────────┘
+               │
+        ┌──────▼────────┐
+        │    Usecase    │  ← Business logic
+        └──────┬────────┘
+               │
+        ┌──────▼────────┐
+        │  Repository   │  ← Data access
+        └──────┬────────┘
+               │
+        ┌──────▼────────┐
+        │   Database    │  ← MySQL/PostgreSQL/MongoDB
+        └───────────────┘
+```
+
+## 🎯 Why Use This?
+
+### Before (Manual Setup)
+1. Clone full template with ALL databases
+2. Manually delete unused database code
+3. Manually remove unused service configurations
+4. Fix broken imports
+5. Update docker-compose.yml
+6. Update .env
+7. Clean up config files
+8. Time: **30-60 minutes** ⏰
+
+### After (Generator)
+1. Run the generator
+2. Answer 6 questions
+3. Time: **2 minutes** ⚡
+
+**Time saved: 95%**
+
+## 🛠️ Generated Project Structure
+
+```
+your-project/
+├── .devcontainer/          # VS Code DevContainer (only selected services!)
+├── cmd/
+│   ├── api/                # API server entry point
+│   ├── worker/             # Background workers
+│   └── scheduler/          # Scheduled jobs
+├── config/                 # Only configs for selected services
+├── internal/
+│   ├── http/handler/       # HTTP handlers
+│   ├── repository/         # Only your chosen database
+│   └── usecase/            # Business logic
+├── entity/                 # Domain entities
+├── database/migration/     # Database migrations (SQL only)
+├── tests/                  # Test utilities and mocks
+├── .env.example
+├── docker-compose.yaml     # Only selected services
+├── go.mod                  # Your module path
+├── Makefile
+└── README.md
+```
+
+## 🔧 Development Workflow
+
+After generating your project:
+
+1. **Open in DevContainer** (recommended):
+   ```bash
+   code your-project
+   # Then: Cmd+Shift+P → "Dev Containers: Reopen in Container"
+   ```
+
+2. **Or start services locally**:
+   ```bash
+   cd your-project
+   docker-compose up -d
+   ```
+
+3. **Run migrations** (if SQL database):
+   ```bash
+   make migrate_up
+   ```
+
+4. **Start the API**:
+   ```bash
+   make run
+   ```
+
+5. **View API docs**:
+   ```
+   http://localhost:7011/apidoc
+   ```
+
+## 📚 Template Information
+
+### Principles
 - Reusable and Maintainable Code
 - Decoupled Code
 - Scalable Development
 
-Features : 
-1. REST API
-2. Clean Architecture
-3. Fiber Framework
-4. Api Docs with Swagger
-5. Worker/Consumer Queue with RabbitMQ
-6. Implementation of Unit Test (with Testify and Mockery)
-7. Authentication with JWT RS512
-8. Logging with Zap Log
-9. GRPC Server! (IN PROGRESS)
-10. GRPC Server with handle authentication (Soon!)
-11. Caching with Redis (Soon!)
-12. Dependency Injection with Google Wire (Soon!)
-13. Worker Queue with Kafka (Soon!)
+### Included Features
+- REST API with Fiber framework
+- Clean Architecture
+- Swagger API documentation
+- Worker/Consumer Queue (optional RabbitMQ)
+- Unit Testing (Testify + Mockery)
+- JWT Authentication (RS512)
+- Structured Logging (Zap)
+- Database Migrations
 
-Feel free to contribute to this repository if you'd like!
-
-
-## Contact
+## 👥 Contact
 | Name                   | Email                        | Role    |
 | ---------------------- | ---------------------------- | ------- |
 | Rahmat Ramadhan Putra  | rahmatrdn.dev@gmail.com     | Creator |
 
+## 🤝 Contributing
 
+Feel free to contribute to this repository!
 
-## Development Guide
+---
+
+## Development Guide (For Template Contributors)
+
 ### Prerequisite
 - Git (See [Git Installation](https://git-scm.com/downloads))
 - Go 1.24+ (See [Golang Installation](https://golang.org/doc/install))

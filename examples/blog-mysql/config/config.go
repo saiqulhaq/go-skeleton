@@ -27,16 +27,12 @@ type MysqlOption struct {
 	SlowThreshold int    `env:"MYSQL_SLOW_LOG_THRESHOLD,required"`
 }
 
-	URI           string `env:"POSTGRE_URI,default="`
-	Pool          int    `env:"POSTGRE_POOL,default=1000"`
-	SlowThreshold int    `env:"POSTGRE_SLOW_LOG_THRESHOLD,default=200"`
-}
-
-	Uri             string `env:"RABBITMQ_URI,required"`
-	Exchange        string `env:"RABBITMQ_EXCHANGE,default=events"`
-	QueueType       string `env:"RABBITMQ_QUEUE_TYPE,default=topic"`
-	QueuePrefix     string `env:"RABBITMQ_QUEUE_PREFIX,default=Ngorder API"`
-	QueueRetryCount int    `env:"RABBITMQ_RETRY_COUNT,default=3"`
+// RedisOption contains Redis connection options
+type RedisOption struct {
+	Host     string `env:"REDIS_HOST,default=localhost"`
+	Port     string `env:"REDIS_PORT,default=6379"`
+	Password string `env:"REDIS_PASSWORD,default="`
+	DB       int    `env:"REDIS_DB,default=0"`
 }
 
 	Uri          string `env:"MONGODB_URI,required"`

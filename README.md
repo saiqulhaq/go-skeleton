@@ -39,13 +39,23 @@ A complete Go project with:
 - Your chosen database (MySQL, PostgreSQL, or MongoDB)
 - Optional Redis for caching
 - Optional RabbitMQ for message queuing
-- Optional MongoDB for centralized logging
 - DevContainer configuration with only your selected services
 - Database migrations (for SQL databases)
 - JWT authentication
 - Swagger API documentation
 - Unit testing setup with mocks
 - Example CRUD operations (Users, TodoList)
+
+## 🎬 Interactive Setup
+
+The generator will ask you:
+
+1. **Project name** - Name of your project (e.g., `my-go-api`)
+2. **Project path** - Where to create the project (default: `./project-name`)
+3. **Go module path** - Your Go module import path (e.g., `github.com/username/project`)
+4. **Database choice** - MySQL, PostgreSQL, or MongoDB
+5. **Redis** - Would you like caching support?
+6. **RabbitMQ** - Would you like message queue support?
 
 ## 🎬 Example Session
 
@@ -55,6 +65,7 @@ A complete Go project with:
 ╚══════════════════════════════════════════════════════════╝
 
 ✔ What is your project name? (my-go-api): ecommerce-api
+✔ Where to create the project? (./ecommerce-api): 
 ✔ What is your Go module path? github.com/mycompany/ecommerce-api
 
 Which database would you like to use?
@@ -65,7 +76,6 @@ Which database would you like to use?
 
 ✔ Would you like to use Redis for caching? (y/N): y
 ✔ Would you like to use RabbitMQ for message queuing? (y/N): n
-✔ Would you like to use MongoDB for logging? (y/N): n
 
 📋 Project Configuration:
   ✓ Project Name: ecommerce-api
@@ -76,18 +86,18 @@ Which database would you like to use?
 ⚠ Create project? (Y/n): y
 
 🔧 Creating project...
-  [1/5] Copying template files...
-  [2/5] Updating module paths...
-  [3/5] Removing unnecessary files...
-  [4/5] Generating devcontainer configuration...
-  [5/5] Updating configuration files...
+  [1/6] Copying template files...
+  [2/6] Creating go.mod file...
+  [3/6] Updating module paths...
+  [4/6] Removing unnecessary files...
+  [5/6] Generating devcontainer configuration...
+  [6/6] Updating configuration files...
 
 ✅ Project created successfully!
 ```
 
 ## 📖 Documentation
 
-- **[Generator README](create-go-skeleton/README.md)** - Complete generator documentation
 - **[Template Structure](template/)** - The base project template
 - **[Cursor Rules](.cursor/general.mdc)** - Code patterns and conventions
 
@@ -135,6 +145,38 @@ The generated project follows Clean Architecture principles:
 3. Time: **2 minutes** ⚡
 
 **Time saved: 95%**
+
+## 🐳 DevContainer Support
+
+The generated `.devcontainer/docker-compose.yml` includes **only** the services you selected:
+
+### Example 1: MySQL + Redis
+```yaml
+services:
+  app: ...
+  db:
+    image: mysql:8.0
+  redis:
+    image: redis:7-alpine
+```
+
+### Example 2: PostgreSQL + RabbitMQ
+```yaml
+services:
+  app: ...
+  db:
+    image: postgres:15-alpine
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+```
+
+### Example 3: MongoDB Only (minimal)
+```yaml
+services:
+  app: ...
+  db:
+    image: mongo:6
+```
 
 ## 🛠️ Generated Project Structure
 
@@ -191,6 +233,20 @@ After generating your project:
    http://localhost:7011/apidoc
    ```
 
+## 🐛 Troubleshooting
+
+### "Project directory already exists"
+Choose a different project name or remove the existing directory.
+
+### "Failed to copy template"
+Make sure you're running from the correct directory and the `template/` folder exists.
+
+### "Module path invalid"
+Use a valid Go module path like `github.com/username/project` or `example.com/project`.
+
+### "make migrate_up fails"
+Ensure the devcontainer has finished building and `golang-migrate` is installed. It's included automatically in the generated devcontainer.
+
 ## 📚 Template Information
 
 ### Principles
@@ -224,11 +280,14 @@ Feel free to contribute to this repository!
 ### Prerequisite
 - Git (See [Git Installation](https://git-scm.com/downloads))
 - Go 1.24+ (See [Golang Installation](https://golang.org/doc/install))
+- Docker (for DevContainer or local services)
+- VS Code with Dev Containers extension (optional, for DevContainer)
+
+### For Template Development
 - MySQL / MariaDB / PostgreSQL (Download via Docker or Other sources)
 - Mockery (Optional) (See [Mockery Installation](https://github.com/vektra/mockery))
-- Go Migrate CLI (Optional) (See [Migrate CLI Installation](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate))
-- Redis (Optional based on your requirement) (See [Redis Installation](https://redis.io/docs/getting-started/installation/) or use in Docker)
-- RabbitMQ (Optional based on your requirement) (See [RabbitMQ Installation](https://www.rabbitmq.com/download.html) or use in Docker)
+- Redis (Optional) (See [Redis Installation](https://redis.io/docs/getting-started/installation/) or use in Docker)
+- RabbitMQ (Optional) (See [RabbitMQ Installation](https://www.rabbitmq.com/download.html) or use in Docker)
 
 #### Windows OS (for a better development experience)
 

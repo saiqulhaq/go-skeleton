@@ -361,6 +361,26 @@ func cleanupFiles(config *ProjectConfig) error {
 		}
 	}
 	
+	// Remove database repository directories not being used
+	dbRepos := map[string]string{
+		"mysql":      filepath.Join(config.ProjectPath, "internal/repository/mysql"),
+		"postgresql": filepath.Join(config.ProjectPath, "internal/repository/mysql"), // PostgreSQL uses the same mysql folder with GORM
+		"mongodb":    filepath.Join(config.ProjectPath, "internal/repository/mongodb"),
+	}
+	
+	for db, repoDir := range dbRepos {
+		if db != config.Database {
+			// For PostgreSQL, don't remove mysql repo since they share it
+			if config.Database == "postgresql" && db == "mysql" {
+				continue
+			}
+			if config.Database == "mysql" && db == "postgresql" {
+				continue
+			}
+			os.RemoveAll(repoDir)
+		}
+	}
+	
 	// Remove optional service configs
 	if !config.UseRedis {
 		os.Remove(filepath.Join(config.ProjectPath, "config/redis.go"))
